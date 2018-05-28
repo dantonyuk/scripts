@@ -1,10 +1,15 @@
-import requests
 import smtplib
 from email.mime.text import MIMEText
 from itertools import groupby
 from urllib.parse import urljoin, urlencode
+import requests
 from jinja2 import Template
 from settings import *
+
+
+### Constants
+
+ERR_CANNOT_RETRIEVE_ISSUES = 'Can not retrieve issues from Jira. Response is %s %s.'
 
 ### Classes
 
@@ -17,6 +22,15 @@ class Issue:
     status = property(lambda self: self.info['fields']['status']['name'])
     summary = property(lambda self: self.info['fields']['summary'])
     assignee = property(lambda self: Assignee(self.info['fields']['assignee']))
+
+    def __str__(self):
+        return '%s %s' % (self.key, self.summary)
+
+    def __hash__(self):
+        return hash(self.key)
+
+    def __eq__(self, other):
+        return self.key == other.key
 
 
 class Assignee:
@@ -40,7 +54,7 @@ def retrieve_issues():
     resp = requests.get(url, auth=(JIRA_USERNAME, JIRA_PASSWORD), params={'jql': JIRA_QUERY})
 
     if not resp.ok:
-        print('Can not retrieve issues from Jira. Response is %s %s.' % (resp.status_code, resp.reason))
+        print(ERR_CANNOT_RETRIEVE_ISSUES % (resp.status_code, resp.reason))
         exit(1)
 
     return list(map(Issue, resp.json()['issues']))
@@ -48,16 +62,16 @@ def retrieve_issues():
 
 def notify_assignee(assignee, issues):
     text = Template(EMAIL_BODY).render(
-            BROWSE_URL=urljoin(JIRA_URL, 'browse'), ISSUES_URL=urljoin(JIRA_URL, 'issues'),
-            assignee=assignee, issues=issues,
-            JQL=urlencode({'jql': JIRA_QUERY + ' AND assignee=currentUser()'}))
-    to = '%s <%s>' % (assignee.name, assignee.email)
+        BROWSE_URL=urljoin(JIRA_URL, 'browse'), ISSUES_URL=urljoin(JIRA_URL, 'issues'),
+        assignee=assignee, issues=issues,
+        JQL=urlencode({'jql': JIRA_QUERY + ' AND assignee=currentUser()'}))
+    recipient = '%s <%s>' % (assignee.name, assignee.email)
     msg = MIMEText(text, EMAIL_TYPE)
     msg['From'] = EMAIL_FROM
-    msg['To'] = to
+    msg['To'] = recipient
     msg['Subject'] = Template(EMAIL_SUBJECT).render(assignee=assignee, issues=issues)
     smtp = smtplib.SMTP(SMTP_SERVER)
-    smtp.sendmail(EMAIL_FROM, [to], msg.as_string())
+    smtp.sendmail(EMAIL_FROM, [recipient], msg.as_string())
     smtp.quit()
 
 
