@@ -1,12 +1,13 @@
-URL = 'https://COMPANY.jira.com/'
-USERNAME = 'notifier'
-PASSWORD = 'password'
-QUERY = 'sprint in (683, 693) AND status not in (Done) AND issueType not in (Sub-task)'
+JIRA_URL = 'https://COMPANY.jira.com/'
+JIRA_USERNAME = 'notifier'
+JIRA_PASSWORD = 'password'
+JIRA_QUERY = 'sprint in (683, 693) AND status not in (Done) AND issueType not in (Sub-task)'
+
 SMTP_SERVER = 'localhost'
-TEXT_TYPE = 'html'
-FROM = 'jira@company.com'
-SUBJECT = '{{ issues|count }} unclosed issues'
-TEMPLATE = """
+EMAIL_TYPE = 'html'
+EMAIL_FROM = 'jira@company.com'
+EMAIL_SUBJECT = '{{ issues|count }} unclosed issues'
+EMAIL_BODY = """
 Hi {{ assignee.info.displayName }},<br/>
 <br/>
 You have {{ issues|count }} unclosed issues belonging to the previous sprint.<br/>

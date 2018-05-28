@@ -36,8 +36,8 @@ class Assignee:
 ### Handling
 
 def retrieve_issues():
-    url = urljoin(URL, 'rest/api/latest/search')
-    resp = requests.get(url, auth=(USERNAME, PASSWORD), params={'jql': QUERY})
+    url = urljoin(JIRA_URL, 'rest/api/latest/search')
+    resp = requests.get(url, auth=(JIRA_USERNAME, JIRA_PASSWORD), params={'jql': JIRA_QUERY})
 
     if not resp.ok:
         print('Can not retrieve issues from Jira. Response is %s %s.' % (resp.status_code, resp.reason))
@@ -47,17 +47,17 @@ def retrieve_issues():
 
 
 def notify_assignee(assignee, issues):
-    text = Template(TEMPLATE).render(
-            BROWSE_URL=urljoin(URL, 'browse'), ISSUES_URL=urljoin(URL, 'issues'),
+    text = Template(EMAIL_BODY).render(
+            BROWSE_URL=urljoin(JIRA_URL, 'browse'), ISSUES_URL=urljoin(JIRA_URL, 'issues'),
             assignee=assignee, issues=issues,
-            JQL=urlencode({'jql': QUERY + ' AND assignee=currentUser()'}))
+            JQL=urlencode({'jql': JIRA_QUERY + ' AND assignee=currentUser()'}))
     to = '%s <%s>' % (assignee.name, assignee.email)
-    msg = MIMEText(text, TEXT_TYPE)
-    msg['From'] = FROM
+    msg = MIMEText(text, EMAIL_TYPE)
+    msg['From'] = EMAIL_FROM
     msg['To'] = to
-    msg['Subject'] = Template(SUBJECT).render(assignee=assignee, issues=issues)
+    msg['Subject'] = Template(EMAIL_SUBJECT).render(assignee=assignee, issues=issues)
     smtp = smtplib.SMTP(SMTP_SERVER)
-    smtp.sendmail(FROM, [to], msg.as_string())
+    smtp.sendmail(EMAIL_FROM, [to], msg.as_string())
     smtp.quit()
 
 
