@@ -6,6 +6,7 @@ JIRA_QUERY = 'sprint in (683, 693) AND status not in (Done) AND issueType not in
 SMTP_SERVER = 'localhost'
 EMAIL_TYPE = 'html'
 EMAIL_FROM = 'jira@company.com'
+EMAIL_CC = None
 EMAIL_SUBJECT = '{{ issues|count }} unclosed issues'
 EMAIL_BODY = """
 Hi {{ assignee.info.displayName }},<br/>

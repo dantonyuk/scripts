@@ -34,13 +34,19 @@ def notify_assignee(assignee, issues):
         BROWSE_URL=urljoin(JIRA_URL, 'browse'), ISSUES_URL=urljoin(JIRA_URL, 'issues'),
         assignee=assignee, issues=issues,
         JQL=urlencode({'jql': JIRA_QUERY + ' AND assignee=currentUser()'}))
+
     recipient = '%s <%s>' % (assignee.name, assignee.email)
+    recipients = [recipient]
+
     msg = MIMEText(text, EMAIL_TYPE)
     msg['From'] = EMAIL_FROM
     msg['To'] = recipient
+    if EMAIL_CC is not None:
+        msg['Cc'] = EMAIL_CC
+        recipients = recipients + [EMAIL_CC]
     msg['Subject'] = Template(EMAIL_SUBJECT).render(assignee=assignee, issues=issues)
     smtp = smtplib.SMTP(SMTP_SERVER)
-    smtp.sendmail(EMAIL_FROM, [recipient], msg.as_string())
+    smtp.sendmail(EMAIL_FROM, recipients, msg.as_string())
     smtp.quit()
 
 
