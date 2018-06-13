@@ -25,6 +25,11 @@ def retrieve_issues(query):
 
 
 def notify_assignee(assignee, issues):
+    if EXCLUDE_RECIPIENTS is not None and assignee.email.lower() in EXCLUDE_RECIPIENTS:
+        return
+    if INCLUDE_RECIPIENTS is not None and assignee.email.lower() not in INCLUDE_RECIPIENTS:
+        return
+
     text = Template(EMAIL_BODY).render(
         BROWSE_URL=urljoin(JIRA_URL, 'browse'), ISSUES_URL=urljoin(JIRA_URL, 'issues'),
         assignee=assignee, issues=issues,

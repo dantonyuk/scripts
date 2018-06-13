@@ -21,3 +21,5 @@ You have {{ issues|count }} unclosed issues belonging to the previous sprint.<br
 <br/>
 Please close and/or clone the issues.<br/>
 """
+INCLUDE_RECIPIENTS = None
+EXCLUDE_RECIPIENTS = None
