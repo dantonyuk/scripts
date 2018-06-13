@@ -1,3 +1,4 @@
+import argparse
 import smtplib
 from email.mime.text import MIMEText
 from itertools import groupby
@@ -12,9 +13,9 @@ from jira import *
 ERR_CANNOT_RETRIEVE_ISSUES = 'Can not retrieve issues from Jira. Response is %s %s.'
 
 
-def retrieve_issues():
+def retrieve_issues(query):
     url = urljoin(JIRA_URL, 'rest/api/latest/search')
-    resp = requests.get(url, auth=(JIRA_USERNAME, JIRA_PASSWORD), params={'jql': JIRA_QUERY})
+    resp = requests.get(url, auth=(JIRA_USERNAME, JIRA_PASSWORD), params={'jql': query})
 
     if not resp.ok:
         print(ERR_CANNOT_RETRIEVE_ISSUES % (resp.status_code, resp.reason))
@@ -39,7 +40,12 @@ def notify_assignee(assignee, issues):
 
 
 def main():
-    issues = retrieve_issues()
+    parser = argparse.ArgumentParser(description='Notify developers about unclosed issues.')
+    parser.add_argument('-q', '--query', default='')
+    args = parser.parse_args()
+    query = (args.query is not None) and args.query or JIRA_QUERY
+
+    issues = retrieve_issues(query)
     for assignee, issues in groupby(issues, Issue.assignee.fget):
         notify_assignee(assignee, list(issues))
 
